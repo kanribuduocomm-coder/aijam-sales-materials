@@ -76,7 +76,7 @@ kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-b
 #bar{position:fixed;top:0;left:0;right:0;z-index:53;display:flex;justify-content:flex-end;
   gap:var(--s2);padding:8px 12px;background:linear-gradient(#0b0f16f0,#0b0f1600);
   opacity:0;pointer-events:none;transition:opacity .12s linear}
-#hot:hover + #bar, #bar:hover{opacity:1;pointer-events:auto}
+#hot:hover + #bar, #bar:hover, #bar.show{opacity:1;pointer-events:auto}
 #bar button{background:#1b2431cc;border:1px solid var(--line);border-radius:var(--r);color:var(--text);
   font-family:var(--sans);font-size:12px;padding:6px 12px;cursor:pointer}
 #bar button:hover{border-color:var(--accent);color:var(--accent)}
@@ -170,6 +170,7 @@ var IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 var role = localStorage.getItem("aijam.role") || "ceo";
 var idx = 0, shown = DATA.slice();
+var current = null, barTimer = null;
 
 var $list = document.getElementById("list");
 var $q = document.getElementById("q");
@@ -194,15 +195,22 @@ function nameOf(slug){
 function openDoc(slug, r, push){
   var url = urlFor(slug, r);
   if (IS_MOBILE){ location.href = url; return; }       // スマホはPDFを直接開く
+  current = slug + "/" + r;
   $frame.src = url + VIEW;
   $viewer.classList.add("open");
   document.body.classList.add("viewing");
   document.title = "AI JAM 提案資料 " + nameOf(slug);
-  if (push !== false) location.hash = slug + "/" + r;
+  if (push !== false) location.hash = current;
+  // 操作バーを数秒だけ出す（以後は画面上端にマウスを寄せた時だけ表示）
+  var bar = document.getElementById("bar");
+  bar.classList.add("show");
+  clearTimeout(barTimer);
+  barTimer = setTimeout(function(){ bar.classList.remove("show"); }, 2500);
   var el = document.documentElement;
   if (el.requestFullscreen) { el.requestFullscreen().catch(function(){}); }
 }
 function closeDoc(){
+  current = null;
   $viewer.classList.remove("open");
   document.body.classList.remove("viewing");
   $frame.src = "about:blank";
@@ -281,12 +289,17 @@ document.addEventListener("keydown", function(e){
 function fromHash(){
   var h = decodeURIComponent(location.hash.replace(/^#/, ""));
   if (!h) return false;
+  if (h === current) return true;          // 自分で書いたハッシュ。開き直さない
   var p = h.split("/"), slug = p[0], r = ROLE_LABEL[p[1]] ? p[1] : role;
   if (slug !== "all" && !DATA.some(function(c){ return c.slug === slug; })) return false;
   openDoc(slug, r, false);
   return true;
 }
-window.addEventListener("hashchange", function(){ if (!location.hash) closeDoc(); });
+// ブックマークからの直リンク、ブラウザの戻る/進む、どちらでも開閉できるようにする
+window.addEventListener("hashchange", function(){
+  if (!location.hash){ closeDoc(); return; }
+  fromHash();
+});
 
 paintSeg(); render();
 if (!fromHash()) $q.focus();

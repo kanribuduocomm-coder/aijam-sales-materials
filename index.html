@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>AI JAM 商談資料</title>
+<style>
+:root{
+  --bg:#0f141d; --panel:#151d29; --panel2:#1b2431; --line:#2b3543;
+  --text:#e9ecf1; --muted:#8b95a7; --accent:#ff6a3d;
+  --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:32px; --s6:48px;
+  --r:4px;
+  --sans:"Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+  --mono:"Consolas","SF Mono","Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:var(--s5) var(--s4) var(--s6)}
+
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s5);
+  padding-bottom:var(--s4);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+h1{font-size:26px;font-weight:700;letter-spacing:.04em;margin-top:var(--s2)}
+h1 span{color:var(--accent)}
+.lead{color:var(--muted);font-size:13px;margin-top:var(--s1)}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;flex:none}
+.seg button{background:transparent;border:0;border-left:1px solid var(--line);color:var(--muted);
+  font-family:var(--sans);font-size:13px;padding:10px 18px;cursor:pointer;white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#12161d;font-weight:700}
+.seg button:hover:not([aria-pressed="true"]){color:var(--text);background:var(--panel2)}
+.seglabel{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--muted);
+  margin-bottom:var(--s2);text-align:right}
+
+.searchrow{display:flex;align-items:center;gap:var(--s3);margin:var(--s4) 0 var(--s3)}
+#q{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);color:var(--text);
+  font-family:var(--sans);font-size:16px;padding:13px var(--s3)}
+#q:focus{outline:none;border-color:var(--accent)}
+#q::placeholder{color:#5d6779}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none}
+
+ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;column-gap:var(--s5)}
+li.row{display:flex;align-items:center;gap:var(--s2);padding:8px 12px 8px 10px;
+  border-bottom:1px solid #202836;border-left:3px solid transparent;cursor:pointer}
+li.row:hover,li.row.on{background:var(--panel);border-left-color:var(--accent)}
+li.row.on .name{color:#fff}
+.no{font-family:var(--mono);font-size:12px;color:#5d6779;width:22px;flex:none}
+.main{flex:1;min-width:0}
+.name{display:block;font-size:15px;font-weight:700;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acts{display:flex;gap:6px;flex:none}
+.acts a{font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--line);
+  border-radius:var(--r);padding:5px 10px;white-space:nowrap}
+.acts a:hover{border-color:var(--accent);color:var(--accent)}
+.acts a.cur{color:var(--text);border-color:#46536a}
+.empty{padding:var(--s5);color:var(--muted);text-align:center}
+
+footer{display:flex;justify-content:space-between;align-items:center;gap:var(--s4);
+  margin-top:var(--s5);padding-top:var(--s3);border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);flex-wrap:wrap}
+footer a{color:var(--muted)}
+footer a:hover{color:var(--accent)}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:3px;padding:1px 5px;color:var(--text)}
+
+/* ---- 全画面ビューア：商談中はこれだけが映る ---- */
+#viewer{position:fixed;inset:0;background:#0b0f16;z-index:50;display:none}
+#viewer.open{display:block}
+#frame{width:100%;height:100%;border:0;display:block}
+/* 上端にだけ当たり判定を置き、マウスを近づけた時だけ操作バーを出す */
+#hot{position:fixed;top:0;left:0;right:0;height:34px;z-index:52}
+#bar{position:fixed;top:0;left:0;right:0;z-index:53;display:flex;justify-content:flex-end;
+  gap:var(--s2);padding:8px 12px;background:linear-gradient(#0b0f16f0,#0b0f1600);
+  opacity:0;pointer-events:none;transition:opacity .12s linear}
+#hot:hover + #bar, #bar:hover{opacity:1;pointer-events:auto}
+#bar button{background:#1b2431cc;border:1px solid var(--line);border-radius:var(--r);color:var(--text);
+  font-family:var(--sans);font-size:12px;padding:6px 12px;cursor:pointer}
+#bar button:hover{border-color:var(--accent);color:var(--accent)}
+body.viewing{overflow:hidden}
+
+@media (max-width:900px){
+  ul{grid-template-columns:1fr}
+  header{flex-direction:column;align-items:flex-start}
+  .seglabel{text-align:left}
+  .acts a{padding:5px 8px}
+  .wrap{padding:var(--s4) var(--s3) var(--s5)}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="picker">
+  <header>
+    <div>
+      <div class="brand">AI JAM &mdash; sales materials</div>
+      <h1>商談資料を<span>開く</span></h1>
+      <p class="lead">業種を選ぶと、その場で資料だけが全画面表示されます。画面共有したままで大丈夫です。</p>
+    </div>
+    <div>
+      <div class="seglabel">商談相手</div>
+      <div class="seg" id="seg">
+        <button data-role="ceo">経営者・決裁者</button>
+        <button data-role="staff">現場担当者</button>
+        <button data-role="it">情シス・社内SE</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="searchrow">
+    <input id="q" type="search" autocomplete="off" spellcheck="false"
+      placeholder="業種を入力して絞り込む（例：整骨院、居酒屋、工務店、税理士）">
+    <span class="count" id="count"></span>
+  </div>
+
+  <ul id="list"></ul>
+  <div class="empty" id="empty" hidden>該当する業種がありません。別の言葉で試してください。</div>
+
+  <footer>
+    <div id="hint">
+      <kbd>&uarr;</kbd> <kbd>&darr;</kbd> で選択・<kbd>Enter</kbd> で開く／資料を閉じるときは <kbd>Esc</kbd>
+    </div>
+    <div><a id="all" href="#">全業態の一覧資料を開く</a>　|　株式会社CRAFTRANS</div>
+  </footer>
+</div>
+
+<div id="viewer">
+  <iframe id="frame" title="AI JAM 提案資料" allowfullscreen></iframe>
+  <div id="hot"></div>
+  <div id="bar">
+    <button id="btnFull">全画面</button>
+    <button id="btnCopy">この資料のリンクをコピー</button>
+    <button id="btnClose">閉じる</button>
+  </div>
+</div>
+
+<script>
+var DATA = [
+ {no:"01",slug:"beauty-salon",name:"理美容・美容サロン",kw:"美容室 理容室 床屋 サロン エステ ネイル アイラッシュ まつげ 眉毛 脱毛 ヘッドスパ リラクゼーション マッサージ びよう"},
+ {no:"02",slug:"it-saas",name:"IT・SaaS・システム開発",kw:"システム開発 受託開発 SIer ソフトウェア アプリ開発 Web制作 インフラ SaaS ITベンダー"},
+ {no:"03",slug:"sales-bpo",name:"営業支援・コールセンター・BPO",kw:"テレアポ 営業代行 インサイドセールス コールセンター テレマーケティング BPO 事務代行 アウトソーシング"},
+ {no:"04",slug:"advertising",name:"広告・マーケティング・クリエイティブ",kw:"広告代理店 デザイン会社 制作会社 動画制作 SNS運用 PR 印刷 マーケティング"},
+ {no:"05",slug:"hr-recruiting",name:"人材・採用支援",kw:"人材紹介 人材派遣 求人 採用 転職エージェント RPO 求人媒体 じんざい"},
+ {no:"06",slug:"ec-retail",name:"EC・通販・D2C・小売",kw:"ネットショップ 通販 楽天 Amazon D2C 小売 物販 アパレル 雑貨 販売店"},
+ {no:"07",slug:"fitness-school",name:"フィットネス・会員制スクール",kw:"ジム パーソナルジム ヨガ ピラティス スイミング スポーツクラブ 習い事 教室 会員制"},
+ {no:"08",slug:"medical-clinic",name:"医科クリニック・健診施設",kw:"クリニック 内科 外科 皮膚科 小児科 眼科 耳鼻科 病院 医院 健診 人間ドック くりにっく"},
+ {no:"09",slug:"dental-aesthetic",name:"歯科医院・美容医療",kw:"歯科 歯医者 矯正 インプラント 美容外科 美容皮膚科 美容クリニック しか"},
+ {no:"10",slug:"therapy-rehab",name:"治療院・リハビリ施設",kw:"整骨院 接骨院 整体 鍼灸 カイロプラクティック リハビリ 訪問リハビリ せいこついん"},
+ {no:"11",slug:"restaurant-nightlife",name:"飲食・接客・ナイトレジャー",kw:"飲食店 レストラン 居酒屋 カフェ バー スナック ラウンジ キャバクラ ナイト 焼肉 寿司 ラーメン いんしょく"},
+ {no:"12",slug:"hotel-travel",name:"宿泊・観光・旅行・レジャー",kw:"ホテル 旅館 民泊 観光 旅行代理店 レジャー 温泉 ゴルフ場 ほてる"},
+ {no:"13",slug:"real-estate",name:"不動産・スペース運営",kw:"不動産 賃貸 売買 仲介 管理会社 レンタルスペース 貸会議室 トランクルーム ふどうさん"},
+ {no:"14",slug:"construction",name:"建設・工事・施設管理",kw:"建設 建築 工務店 リフォーム 内装 電気工事 設備 ビルメンテナンス 清掃 施設管理 けんせつ"},
+ {no:"15",slug:"automotive",name:"自動車・整備・モビリティ",kw:"自動車 ディーラー 中古車 整備工場 板金 車検 レンタカー バイク じどうしゃ"},
+ {no:"16",slug:"logistics",name:"物流・運送・倉庫",kw:"運送 配送 トラック 倉庫 3PL 物流 引越し うんそう"},
+ {no:"17",slug:"professional-finance",name:"士業・金融・コンサルティング",kw:"税理士 会計事務所 社労士 弁護士 司法書士 行政書士 コンサル 保険代理店 金融 ぜいりし"},
+ {no:"18",slug:"education-childcare",name:"教育・保育・研修",kw:"塾 予備校 スクール 学校 保育園 幼稚園 こども園 研修会社 eラーニング きょういく"},
+ {no:"19",slug:"franchise",name:"フランチャイズ・多店舗本部",kw:"FC フランチャイズ 本部 多店舗 チェーン スーパーバイザー"},
+ {no:"20",slug:"nursing-welfare",name:"介護・福祉・在宅支援・薬局",kw:"介護 デイサービス 訪問介護 老人ホーム 障害福祉 就労支援 薬局 調剤 かいご"},
+ {no:"21",slug:"life-services",name:"予約・相談型生活サービス",kw:"ペットサロン トリミング 動物病院 冠婚葬祭 葬儀 結婚相談所 写真館 クリーニング 便利屋 修理"},
+ {no:"22",slug:"manufacturing-trade",name:"製造・商社・卸・一次産業",kw:"製造 工場 メーカー 商社 卸売 農業 漁業 食品加工 せいぞう"},
+ {no:"23",slug:"public-nonprofit",name:"公共・非営利・地域・文化",kw:"自治体 官公庁 NPO 社団法人 財団 商工会 組合 神社 寺院 文化施設"}
+];
+var ROLE_LABEL = {ceo:"決裁者", staff:"現場", it:"情シス"};
+// #toolbar=0&navpanes=0 でPDFの操作バーとサムネイル欄を消す
+var VIEW = "#toolbar=0&navpanes=0&view=Fit";
+var IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+var role = localStorage.getItem("aijam.role") || "ceo";
+var idx = 0, shown = DATA.slice();
+
+var $list = document.getElementById("list");
+var $q = document.getElementById("q");
+var $count = document.getElementById("count");
+var $empty = document.getElementById("empty");
+var $viewer = document.getElementById("viewer");
+var $frame = document.getElementById("frame");
+
+function urlFor(slug, r){
+  return slug === "all" ? "pdf/all-industries.pdf"
+                        : "pdf/" + r + "/" + numOf(slug) + "-" + slug + ".pdf";
+}
+function numOf(slug){
+  for (var i = 0; i < DATA.length; i++) if (DATA[i].slug === slug) return DATA[i].no;
+  return "";
+}
+function nameOf(slug){
+  for (var i = 0; i < DATA.length; i++) if (DATA[i].slug === slug) return DATA[i].name;
+  return "全業態一覧";
+}
+
+function openDoc(slug, r, push){
+  var url = urlFor(slug, r);
+  if (IS_MOBILE){ location.href = url; return; }       // スマホはPDFを直接開く
+  $frame.src = url + VIEW;
+  $viewer.classList.add("open");
+  document.body.classList.add("viewing");
+  document.title = "AI JAM 提案資料 " + nameOf(slug);
+  if (push !== false) location.hash = slug + "/" + r;
+  var el = document.documentElement;
+  if (el.requestFullscreen) { el.requestFullscreen().catch(function(){}); }
+}
+function closeDoc(){
+  $viewer.classList.remove("open");
+  document.body.classList.remove("viewing");
+  $frame.src = "about:blank";
+  document.title = "AI JAM 商談資料";
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function(){});
+  if (location.hash) history.replaceState(null, "", location.pathname);
+  $q.focus();
+}
+
+function paintSeg(){
+  var bs = document.querySelectorAll("#seg button");
+  for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-pressed", bs[i].dataset.role === role);
+}
+function render(){
+  var term = $q.value.trim().toLowerCase();
+  shown = DATA.filter(function(c){
+    return !term || (c.no + " " + c.name + " " + c.kw + " " + c.slug).toLowerCase().indexOf(term) >= 0;
+  });
+  if (idx >= shown.length) idx = 0;
+  $list.innerHTML = shown.map(function(c, i){
+    return '<li class="row' + (i === idx ? " on" : "") + '" data-i="' + i + '" title="' + c.kw + '">' +
+      '<span class="no">' + c.no + '</span>' +
+      '<span class="main"><span class="name">' + c.name + '</span></span>' +
+      '<span class="acts">' +
+        '<a href="#" data-i="' + i + '" data-role="ceo" class="' + (role === "ceo" ? "cur" : "") + '">決裁者</a>' +
+        '<a href="#" data-i="' + i + '" data-role="staff" class="' + (role === "staff" ? "cur" : "") + '">現場</a>' +
+        '<a href="#" data-i="' + i + '" data-role="it" class="' + (role === "it" ? "cur" : "") + '">情シス</a>' +
+      '</span></li>';
+  }).join("");
+  $count.textContent = shown.length + " / " + DATA.length + " 業種";
+  $empty.hidden = shown.length > 0;
+}
+
+$list.addEventListener("click", function(e){
+  var a = e.target.closest("a[data-role]");
+  if (a){ e.preventDefault(); openDoc(shown[+a.dataset.i].slug, a.dataset.role); return; }
+  var li = e.target.closest("li.row");
+  if (li) openDoc(shown[+li.dataset.i].slug, role);
+});
+document.getElementById("seg").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  role = b.dataset.role;
+  try { localStorage.setItem("aijam.role", role); } catch (err) {}
+  paintSeg(); render();
+});
+document.getElementById("all").addEventListener("click", function(e){
+  e.preventDefault(); openDoc("all", role);
+});
+document.getElementById("btnClose").addEventListener("click", closeDoc);
+document.getElementById("btnFull").addEventListener("click", function(){
+  var el = document.documentElement;
+  if (document.fullscreenElement){ document.exitFullscreen(); }
+  else if (el.requestFullscreen){ el.requestFullscreen().catch(function(){}); }
+});
+document.getElementById("btnCopy").addEventListener("click", function(){
+  var btn = this, url = location.href;
+  navigator.clipboard.writeText(url).then(function(){
+    btn.textContent = "コピーしました";
+    setTimeout(function(){ btn.textContent = "この資料のリンクをコピー"; }, 1600);
+  });
+});
+
+$q.addEventListener("input", function(){ idx = 0; render(); });
+document.addEventListener("keydown", function(e){
+  if ($viewer.classList.contains("open")){
+    if (e.key === "Escape" && !document.fullscreenElement) closeDoc();
+    return;
+  }
+  if (e.key === "ArrowDown"){ e.preventDefault(); idx = Math.min(idx + 1, shown.length - 1); render(); }
+  else if (e.key === "ArrowUp"){ e.preventDefault(); idx = Math.max(idx - 1, 0); render(); }
+  else if (e.key === "Enter" && shown.length){ e.preventDefault(); openDoc(shown[idx].slug, role); }
+  else if (e.key === "Escape"){ $q.value = ""; idx = 0; render(); $q.focus(); }
+});
+
+// #therapy-rehab/ceo のような直リンクで開く（Chatworkに業種別URLを配れる）
+function fromHash(){
+  var h = decodeURIComponent(location.hash.replace(/^#/, ""));
+  if (!h) return false;
+  var p = h.split("/"), slug = p[0], r = ROLE_LABEL[p[1]] ? p[1] : role;
+  if (slug !== "all" && !DATA.some(function(c){ return c.slug === slug; })) return false;
+  openDoc(slug, r, false);
+  return true;
+}
+window.addEventListener("hashchange", function(){ if (!location.hash) closeDoc(); });
+
+paintSeg(); render();
+if (!fromHash()) $q.focus();
+</script>
+</body>
+</html>
